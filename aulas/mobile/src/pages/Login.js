@@ -1,24 +1,45 @@
-import React, { useState } from 'react';
-import { View, KeyboardAvoidingView, Platform, Image, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, AsyncStorage ,KeyboardAvoidingView, Platform, Image, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 
 import api from '../services/api'
 
 import logo from '../assets/logo.png';
 
-export default function Login() {
+
+//o navigation simula o history do ReactJS, que é usado para navegar o usuário por telas
+//passo importante do desenvolvimento
+export default function Login({ navigation }) {
     const [email, setEmail] = useState('');
     const [techs, setTechs] = useState('');
-    
+
+    //O useEffect realiza funções ao entrar na página desejada
+    //nesse caso ele é usado para verificar se o usuario esta logado
+    //se for true, ele vai ser enviado para a lista
+    //é necessário instalar uma dependencia do React, a useEffect
+    useEffect(() => {
+        AsyncStorage.getItem('user').then(user => {
+            if (user) {
+                navigation.navigate('List');
+            }
+        });
+    }, []);
+
     async function handleSubmit(){
         //email, techs
-        console.log('Click handle');
         const response = await api.post('/sessions',{
             email
         })
 
         const { _id } = response.data;
 
-        console.log('Resposta ', response);
+        console.log('Resposta ', _id);
+
+        //Salvar os dados do usuário como no sessionstorage do chrome
+        //lib AsynsStorage do react-native importada para usar essa função
+        await AsyncStorage.setItem('user', _id); 
+        await AsyncStorage.setItem('techs', techs); 
+
+        navigation.navigate('List');
     }
 
     return (
