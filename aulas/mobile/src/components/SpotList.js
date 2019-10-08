@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { withNavigation } from 'react-navigation' ;
 import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 
 import api from '../services/api';
 
-function SpotList(props) {
+function SpotList({tech, navigation }) {
     const [spots, setSpots] = useState([]);
     
     //useEffect antes do return
     useEffect(() =>{
         async function loadSpot(){
-            const response = await api.get(`/spots?tech=${props.tech}`);
+            const response = await api.get(`/spots?tech=${tech}`);
 
             setSpots(response.data);
 
@@ -20,10 +21,14 @@ function SpotList(props) {
         loadSpot();
     }, []);
 
+    function handleNavigate(id){
+        navigation.navigate('Book', { id });
+    };
+
     return(
         
         <View style={styles.container}>
-            <Text style={styles.title}>Empresas que usam <Text style={styles.bold}>{props.tech}</Text></Text>
+            <Text style={styles.title}>Empresas que usam <Text style={styles.bold}>{tech}</Text></Text>
 
             <FlatList 
                 style={styles.list}
@@ -37,7 +42,10 @@ function SpotList(props) {
                         <Text style={styles.company}>{item.company}</Text>
                         <Text style={styles.price}>{item.price ? `R$${item.price}/dia` : 'GRATUITO'}</Text>
 
-                        <TouchableOpacity onPress={()=>{}} style={styles.button}>
+                        {/* A função handleNavigate não pode ser chamada dentro do onPress sem estar dentro de uma função
+                            pois sem estar dentro da função, ela é chamada assim que carregar a página, sem esperar o click
+                            do usuário */}
+                        <TouchableOpacity onPress={() => handleNavigate(item._id)} style={styles.button}>
                             <Text style={styles.buttonText}>Solicitar reserva</Text>
                         </TouchableOpacity>
                     </View>
@@ -72,6 +80,7 @@ const styles = StyleSheet.create({
         height: 120,
         resizeMode: 'cover',
         borderRadius:2,
+        backgroundColor: '#999',
     },
 
     company: {
@@ -103,4 +112,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default SpotList();
+export default withNavigation(SpotList);
